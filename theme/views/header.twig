@@ -1,0 +1,11 @@
+<header class="bg-white shadow-lg sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            {% include 'partial/logo.twig' %}
+            {% include 'partial/desktop-menu.twig' %}
+            {% include 'partial/mobile-menu.twig' %}
+        </div>
+    </div>
+
+    {% include 'partial/mobile-menu-panel.twig' %}
+</header>

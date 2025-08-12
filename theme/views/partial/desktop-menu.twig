@@ -1,0 +1,12 @@
+<!-- Desktop Menu -->
+<nav class="hidden md:block">
+    {% if menu and menu.items %}
+        {% include 'menu.twig' with {
+            'items': menu.items,
+            'context': 'desktop'
+        } %}
+    {% else %}
+        <!-- Debug: Menu not found -->
+        <div class="text-sm text-red-500">Menu not assigned to Primary location</div>
+    {% endif %}
+</nav>

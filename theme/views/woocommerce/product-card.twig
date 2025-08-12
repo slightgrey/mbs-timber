@@ -1,0 +1,111 @@
+{# 
+  Product Card Component
+  
+  Parameters:
+  - post: WP_Post object for the product
+  - product: WC_Product object (optional, will be fetched if not provided)  
+  - show_brand: boolean - whether to show brand/category (default: true)
+  - show_sale_badge: boolean - whether to show sale badge (default: true)
+#}
+
+{% set product = product ?: function('wc_get_product', post.ID) %}
+{% set show_brand = show_brand is defined ? show_brand : true %}
+{% set show_sale_badge = show_sale_badge is defined ? show_sale_badge : true %}
+
+{% if product %}
+    <div class="product-item bg-white relative group">
+        <!-- Sale Badge -->
+        {% if show_sale_badge and product.is_on_sale() %}
+            {% set regular_price = product.get_regular_price() %}
+            {% set sale_price = product.get_sale_price() %}
+            {% if regular_price and sale_price %}
+                {% set discount_percent = (((regular_price - sale_price) / regular_price) * 100)|round %}
+                <div class="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-sm font-bold z-10">
+                    -{{ discount_percent }}%
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <a href="{{ post.link ?: function('get_permalink', post.ID) }}" class="block">
+            <!-- Product Image -->
+            {% if post.thumbnail %}
+                <div class="aspect-square overflow-hidden bg-gray-100 mb-4">
+                    <img src="{{ post.thumbnail.src('medium') }}" 
+                         alt="{{ post.thumbnail.alt }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                </div>
+            {% else %}
+                {% set thumbnail = function('get_the_post_thumbnail_url', post.ID, 'medium') %}
+                {% if thumbnail %}
+                    <div class="aspect-square overflow-hidden bg-gray-100 mb-4">
+                        <img src="{{ thumbnail }}" 
+                             alt="{{ post.post_title ?: post.title }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                {% else %}
+                    <div class="aspect-square bg-gray-100 mb-4 flex items-center justify-center">
+                        <span class="text-gray-400 text-sm">No Image</span>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Product Info -->
+            <div class="space-y-2">
+                <!-- Brand Name -->
+                {% if show_brand %}
+                    {% set product_brands = function('get_the_terms', post.ID, 'product_brand') %}
+                    {% if product_brands and product_brands is not same as(false) %}
+                        <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                            {{ product_brands[0].name }}
+                        </div>
+                    {% else %}
+                        <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                            Brand
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <!-- Product Name -->
+                <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2">{{ post.title ?: post.post_title }}</h3>
+                {# <p>{{test}}</p> #}
+                <!-- Price -->
+                <div class="flex items-center space-x-2 mb-4">
+                    {% if product.is_on_sale() %}
+                        <span class="text-lg font-bold text-gray-900">
+                            {{ function('wc_price', product.get_sale_price())|raw }}
+                        </span>
+                        {% if product.get_regular_price() %}
+                            <span class="text-sm text-gray-500 line-through">
+                                {{ function('wc_price', product.get_regular_price())|raw }}
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-lg font-bold text-gray-900">
+                            {{ function('wc_price', product.get_price())|raw }}
+                        </span>
+                    {% endif %}
+                    <span class="text-sm text-gray-500">INC GST</span>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Add to Cart Button -->
+        <form class="cart" action="{{ function('esc_url', function('apply_filters', 'woocommerce_add_to_cart_form_action', post.link ?: function('get_permalink', post.ID))) }}" method="post" enctype='multipart/form-data'>
+            {% if product.is_type('simple') %}
+                <button type="submit" 
+                        name="add-to-cart" 
+                        value="{{ product.get_id() }}" 
+                        class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 transition-colors"
+                        style="background-color: #facc15 !important; color: #000 !important; width: auto !important; display: inline-block !important; border: none !important; border-radius: 0 !important;">
+                    Add To Cart
+                </button>
+            {% else %}
+                <a href="{{ post.link ?: function('get_permalink', post.ID) }}" 
+                   class="inline-block bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 transition-colors"
+                   style="background-color: #facc15 !important; color: #000 !important; width: auto !important; display: inline-block !important; text-decoration: none !important;">
+                    View Options
+                </a>
+            {% endif %}
+        </form>
+    </div>
+{% endif %}
